@@ -1,18 +1,19 @@
 import { displayLog } from './utils';
-import { from, fromEvent } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { fromEvent } from 'rxjs';
+import { map, first, take, takeWhile } from 'rxjs/operators';
 
 /**
- * tap simplemente devuelve la informacion que le viene
+ * first - recoger el primer evento.
+ * take - dejar de emitir los siguientes eventos a partir de un evento indicado. Pj: take(4)
+ * takeWhile- emitir eventos mientras se cumpla la condicion
+ * 
+ * 
  */
 
 export default () => {
 
     const grid = document.getElementById('grid');
     const clickSource = fromEvent(grid, 'click').pipe(
-        tap (val => {
-            console.log('Before', val);
-        }),
         map(val => {
             // Devuelve la posicion de la casilla del grid
             return [
@@ -20,9 +21,11 @@ export default () => {
                 Math.floor(val.offsetY / 50)
             ]
         }),
-        tap(val => {
-            console.log(`After - ${val}`);
-        })
+        // first( val => {
+        //     return val;
+        // })
+        //take(4),
+        takeWhile( ([col, row]) => col > 3 ) // Si se pincha en una columna menor igual que tres se deja de emitir
     )
     const subscription = clickSource.subscribe(data => displayLog(data));
 
