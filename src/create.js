@@ -1,15 +1,18 @@
 import { displayLog } from './utils';
 import { from, fromEvent } from 'rxjs';
-import { mapTo, map, filter } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 /**
- * mapTo - por cada evento siempre devuelve el mismo valor (valor constante)
+ * tap simplemente devuelve la informacion que le viene
  */
 
 export default () => {
 
     const grid = document.getElementById('grid');
     const clickSource = fromEvent(grid, 'click').pipe(
+        tap (val => {
+            console.log('Before', val);
+        }),
         map(val => {
             // Devuelve la posicion de la casilla del grid
             return [
@@ -17,11 +20,9 @@ export default () => {
                 Math.floor(val.offsetY / 50)
             ]
         }),
-        filter( val => { 
-            //Segun los valroes que devuelva el map
-            // solo se mostraran las casillas impares. 
-            return (val[0] + val[1]) % 2 != 0;
-        }) 
+        tap(val => {
+            console.log(`After - ${val}`);
+        })
     )
     const subscription = clickSource.subscribe(data => displayLog(data));
 
