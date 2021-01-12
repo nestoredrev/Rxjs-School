@@ -1,11 +1,11 @@
 import { displayLog } from './utils';
 import { fromEvent } from 'rxjs';
-import { map, last, takeLast, skip, tap, take } from 'rxjs/operators';
+import { map, tap, reduce, takeWhile, scan } from 'rxjs/operators';
 
 /**
- * last - recoge el ultimo evento emitido.
- * takeLast - recoge las ultimas posiciones indicadas.
- * skip - se salta los primeros eventos indicados. 
+ * Muy util para el carrito de la compra. Para obtener el total de los productos acumulados en el carro
+ * reduce - un unico evento al acabar
+ * scan - por cada uno de los eventos
  */
 
 export default () => {
@@ -19,14 +19,23 @@ export default () => {
                 Math.floor(val.offsetY / 50)
             ]
         }),
-        take(10),
-        tap(val => {
-            console.log(`Los 10 primeros clicks - ${val}`);
+        takeWhile( ([col, row]) => {
+            return col != 0;
         }),
-        // last(),
-        // takeLast(5),
-        skip(5)
+        tap(val => console.log(`cell: ${val}`)),
+        // reduce( ( accumulated, current ) => {
+        //     return {
+        //         clicks: accumulated.clicks + 1,
+        //         cells: [...accumulated.cells, current]
+        //     }
+        // }, {clicks: 0, cells:[]} ) // semilla
+        scan( ( accumulated, current ) => {
+            return {
+                clicks: accumulated.clicks + 1,
+                cells: [...accumulated.cells, current]
+            }
+        }, {clicks: 0, cells:[]} ) // semilla
     )
-    const subscription = clickSource.subscribe(data => displayLog(data));
+    const subscription = clickSource.subscribe(data => displayLog(`${data.clicks} clicks: ${JSON.stringify(data.cells)} `));
 
 }
