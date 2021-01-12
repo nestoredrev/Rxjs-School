@@ -1,13 +1,11 @@
 import { displayLog } from './utils';
 import { fromEvent } from 'rxjs';
-import { map, first, take, takeWhile } from 'rxjs/operators';
+import { map, last, takeLast, skip, tap, take } from 'rxjs/operators';
 
 /**
- * first - recoger el primer evento.
- * take - dejar de emitir los siguientes eventos a partir de un evento indicado. Pj: take(4)
- * takeWhile- emitir eventos mientras se cumpla la condicion
- * 
- * 
+ * last - recoge el ultimo evento emitido.
+ * takeLast - recoge las ultimas posiciones indicadas.
+ * skip - se salta los primeros eventos indicados. 
  */
 
 export default () => {
@@ -21,11 +19,13 @@ export default () => {
                 Math.floor(val.offsetY / 50)
             ]
         }),
-        // first( val => {
-        //     return val;
-        // })
-        //take(4),
-        takeWhile( ([col, row]) => col > 3 ) // Si se pincha en una columna menor igual que tres se deja de emitir
+        take(10),
+        tap(val => {
+            console.log(`Los 10 primeros clicks - ${val}`);
+        }),
+        // last(),
+        // takeLast(5),
+        skip(5)
     )
     const subscription = clickSource.subscribe(data => displayLog(data));
 
