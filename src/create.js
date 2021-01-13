@@ -1,10 +1,10 @@
 import { displayLog } from './utils';
 import { fromEvent } from 'rxjs';
-import { map, tap, takeWhile, startWith, endWith } from 'rxjs/operators';
+import { map, tap, takeWhile, endWith, distinct, distinctUntilChanged } from 'rxjs/operators';
 
 /**
- * startWidth - emite un argumento justo antes de empezar a escuchar el evento. Como un incializador
- * endWith - es lo mismo pero al final cuando termina el while
+ * distinct - evita repeticiones. En este caso no deja pulsar la misma celda.
+ * distinctUntilChanged - es lo mismo pero con una condicion.
  */
 
 export default () => {
@@ -22,7 +22,12 @@ export default () => {
             return col != 0;
         }),
         tap(val => console.log(`cell: ${val}`)),
-        //startWith(`Esto es un tablero de 10x10`)
+        // distinct( ([col, row]) => `${col} - ${row}` ),
+        distinctUntilChanged( (cell1, cell2) => { // solamente evita pulsar una vez sobre la misma casilla
+            if( cell1[0] == cell2[0] && cell1[1] == cell2[1] ) {
+                return true;
+            }
+        } ),
         endWith(`Game over. Has puslado la columna 0`)
     )
     const subscription = clickSource.subscribe(data => displayLog(`${data}`));
