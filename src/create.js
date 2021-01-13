@@ -1,11 +1,10 @@
 import { displayLog } from './utils';
 import { fromEvent } from 'rxjs';
-import { map, tap, reduce, takeWhile, scan } from 'rxjs/operators';
+import { map, tap, takeWhile, startWith, endWith } from 'rxjs/operators';
 
 /**
- * Muy util para el carrito de la compra. Para obtener el total de los productos acumulados en el carro
- * reduce - un unico evento al acabar
- * scan - por cada uno de los eventos
+ * startWidth - emite un argumento justo antes de empezar a escuchar el evento. Como un incializador
+ * endWith - es lo mismo pero al final cuando termina el while
  */
 
 export default () => {
@@ -23,19 +22,9 @@ export default () => {
             return col != 0;
         }),
         tap(val => console.log(`cell: ${val}`)),
-        // reduce( ( accumulated, current ) => {
-        //     return {
-        //         clicks: accumulated.clicks + 1,
-        //         cells: [...accumulated.cells, current]
-        //     }
-        // }, {clicks: 0, cells:[]} ) // semilla
-        scan( ( accumulated, current ) => {
-            return {
-                clicks: accumulated.clicks + 1,
-                cells: [...accumulated.cells, current]
-            }
-        }, {clicks: 0, cells:[]} ) // semilla
+        //startWith(`Esto es un tablero de 10x10`)
+        endWith(`Game over. Has puslado la columna 0`)
     )
-    const subscription = clickSource.subscribe(data => displayLog(`${data.clicks} clicks: ${JSON.stringify(data.cells)} `));
+    const subscription = clickSource.subscribe(data => displayLog(`${data}`));
 
 }
