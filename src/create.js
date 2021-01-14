@@ -1,9 +1,10 @@
 import { updateDisplay, displayLog } from './utils';
 import { fromEvent } from 'rxjs';
-import { map, tap, pairwise } from 'rxjs/operators';
+import { map, tap, share } from 'rxjs/operators';
 
 /**
- * pairwise - trabaja sobre el valor actual y el valor anterior
+ * share - evitar varias instancias si tenemos varias subscripciones desde un observable.
+ * si no se pone el share se ejecuta varias veces el vento por las diferentes subscripciones asi el
  * 
  */
 
@@ -18,12 +19,7 @@ export default () => {
     //observable that returns scroll (from top) on scroll events
     const scroll$ = fromEvent(document, 'scroll').pipe(
         map(() => docElement.scrollTop),
-        tap(evt => console.log("[scroll]: ", evt)),
-        pairwise(),
-        tap( ([previous, current]) => {
-            updateDisplay(current > previous ? 'DESC' : 'ASC')
-        }),
-        map( ([previus, current]) => current )
+        tap(evt => console.log("[scroll]: ", evt))
     );
 
     //observable that returns the amount of page scroll progress
@@ -31,11 +27,17 @@ export default () => {
         map(evt => {
             const docHeight = docElement.scrollHeight - docElement.clientHeight;
             return (evt / docHeight) * 100;
-        })
+        }),
+        share()
     )
 
     //subscribe to scroll progress to paint a progress bar
     const subscription = scrollProgress$.subscribe(updateProgressBar);
+
+    // mostrar porcentaje en la pantalla del scroll bar
+    const subscription2 = scrollProgress$.subscribe (val => {
+        updateDisplay(`${Math.floor(val)} %`)
+    })
 
     /** end coding */
 }
