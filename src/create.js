@@ -1,10 +1,10 @@
 import { updateDisplay, displayLog } from './utils';
-import { fromEvent } from 'rxjs';
+import { fromEvent, Subject, BehaviorSubject } from 'rxjs';
 import { map, tap, share } from 'rxjs/operators';
 
 /**
- * share - evitar varias instancias si tenemos varias subscripciones desde un observable.
- * si no se pone el share se ejecuta varias veces el vento por las diferentes subscripciones asi el
+ *  Subject - permite realizar multicast entre los observable de instancian de el.
+ *  Actua como un distribuidor entre sus instancias de observables.
  * 
  */
 
@@ -27,17 +27,27 @@ export default () => {
         map(evt => {
             const docHeight = docElement.scrollHeight - docElement.clientHeight;
             return (evt / docHeight) * 100;
-        }),
-        share()
+        })
     )
+    
+    // BehaviorSubject es lo mismo que Subject lo que pasa que lo puede incializar sin el next
+    // Tambien se puede obtener el valor inicial con value
+    const scrollProgressHot$ = new BehaviorSubject(0);
+    scrollProgress$.subscribe(scrollProgressHot$);
 
     //subscribe to scroll progress to paint a progress bar
-    const subscription = scrollProgress$.subscribe(updateProgressBar);
+    const subscription = scrollProgressHot$.subscribe(updateProgressBar);
 
     // mostrar porcentaje en la pantalla del scroll bar
-    const subscription2 = scrollProgress$.subscribe (val => {
+    const subscription2 = scrollProgressHot$.subscribe (val => {
         updateDisplay(`${Math.floor(val)} %`)
     })
+
+    // inicializar el scrollbar a 0
+    // scrollProgressHot$.next(0);
+
+    console.log("scroll intial state: ", scrollProgressHot$.value);
+
 
     /** end coding */
 }
