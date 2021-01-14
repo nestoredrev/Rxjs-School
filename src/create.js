@@ -1,35 +1,41 @@
-import { displayLog } from './utils';
+import { updateDisplay, displayLog } from './utils';
 import { fromEvent } from 'rxjs';
-import { map, tap, takeWhile, endWith, distinct, distinctUntilChanged } from 'rxjs/operators';
+import { map, tap, pairwise } from 'rxjs/operators';
 
 /**
- * distinct - evita repeticiones. En este caso no deja pulsar la misma celda.
- * distinctUntilChanged - es lo mismo pero con una condicion.
+ * pairwise - trabaja sobre el valor actual y el valor anterior
+ * 
  */
 
 export default () => {
+    /** start coding */
+    const progressBar = document.getElementById('progress-bar');
+    const docElement = document.documentElement;
+    const updateProgressBar = (percentage) => {
+        progressBar.style.width = `${percentage}%`;
+    }
 
-    const grid = document.getElementById('grid');
-    const clickSource = fromEvent(grid, 'click').pipe(
-        map(val => {
-            // Devuelve la posicion de la casilla del grid
-            return [
-                Math.floor(val.offsetX / 50), 
-                Math.floor(val.offsetY / 50)
-            ]
+    //observable that returns scroll (from top) on scroll events
+    const scroll$ = fromEvent(document, 'scroll').pipe(
+        map(() => docElement.scrollTop),
+        tap(evt => console.log("[scroll]: ", evt)),
+        pairwise(),
+        tap( ([previous, current]) => {
+            updateDisplay(current > previous ? 'DESC' : 'ASC')
         }),
-        takeWhile( ([col, row]) => {
-            return col != 0;
-        }),
-        tap(val => console.log(`cell: ${val}`)),
-        // distinct( ([col, row]) => `${col} - ${row}` ),
-        distinctUntilChanged( (cell1, cell2) => { // solamente evita pulsar una vez sobre la misma casilla
-            if( cell1[0] == cell2[0] && cell1[1] == cell2[1] ) {
-                return true;
-            }
-        } ),
-        endWith(`Game over. Has puslado la columna 0`)
+        map( ([previus, current]) => current )
+    );
+
+    //observable that returns the amount of page scroll progress
+    const scrollProgress$ = scroll$.pipe(
+        map(evt => {
+            const docHeight = docElement.scrollHeight - docElement.clientHeight;
+            return (evt / docHeight) * 100;
+        })
     )
-    const subscription = clickSource.subscribe(data => displayLog(`${data}`));
 
+    //subscribe to scroll progress to paint a progress bar
+    const subscription = scrollProgress$.subscribe(updateProgressBar);
+
+    /** end coding */
 }
